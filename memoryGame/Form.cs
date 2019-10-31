@@ -18,6 +18,7 @@ namespace memoryGame
             CardPanel cardPanel = PanelRemote.GetPanel();
 
             PanelButton panel = new PanelButton(cardPanel);
+            panel.Execute(this);
         }
     }
 }
