@@ -10,11 +10,14 @@ using System.Windows.Forms;
 
 namespace memoryGame
 {
-    public partial class Form1 : Form
+    public partial class Form : System.Windows.Forms.Form
     {
-        public Form1()
+        public Form()
         {
             InitializeComponent();
+            CardPanel cardPanel = PanelRemote.GetPanel();
+
+            PanelButton panel = new PanelButton(cardPanel);
         }
     }
 }
