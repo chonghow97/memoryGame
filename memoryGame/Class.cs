@@ -9,19 +9,15 @@ namespace memoryGame
 {
     class Card : System.Windows.Forms.PictureBox, ICard
     {
-        #region Properties
-        //width
-        public int W { get; set; }
-        //height
-        public int H { get; set; }
-        #endregion
 
+        public int Value { get; set; }
         #region constructor
         public Card()
         {
-            this.W = this.Width;
-            this.H = this.Height;
+            this.Width = 100;
+            this.Height = 150;
             this.BackColor = Color.Red;
+            this.Value = Value;
             this.Cursor = System.Windows.Forms.Cursors.Hand;
         }
         #endregion
@@ -30,19 +26,20 @@ namespace memoryGame
 
     class CardPanel : System.Windows.Forms.Panel, ICardPanel
     {
+
         #region Properties
+        private readonly int row, column, m;
+
         //panel row
         public int Row { get; set; }
         //panel column
         public int Column { get; set; }
         //panel margin
         public int M { get; set; }
-        //panel point
-        public List<Point> Xy { get; set; }
-        //panel Image(Animal)
-        public List<Image> AnimalImage { get; set; }
         //random
         Random rng = new Random();
+        Boolean firsttry;
+        Card compare = new Card();
         #endregion
 
         #region Initialize Xy
@@ -56,49 +53,93 @@ namespace memoryGame
                     temp.Add(new Point(i, j));
                 }
             }
-            temp = temp.Select(x => { x.X = (x.X * W + x.X + 3); x.Y = (x.Y * H + x.Y + 3); return x; }).ToList();
+            temp = temp.Select(x => { x.X = (x.X * W + x.X + 3); x.Y = (x.Y * H + x.Y + 3); return x; }).OrderBy(x => rng.Next()).ToList();
+            return temp;
+        }
+        #endregion
+
+        #region
+        public List<Image> Animalz(int Row, int Column)
+        {
+            List<Image> temp = new List<Image>();
+            for (int i = 97; i < Row*Column+97; i++)
+            {
+                temp.Add((Image)Properties.Resources.ResourceManager.GetObject(((char)i).ToString()));
+                temp.Add((Image)Properties.Resources.ResourceManager.GetObject(((char)i).ToString()));
+            }
             return temp;
         }
         #endregion
 
         #region Initialize Card
+        
         public void Init_Card(System.Windows.Forms.Form x)
         {
+            
+            Card card = new Card();
+            List<Point> tempLocation = Init_Xy(card.Width, card.Height, Row, Column, M);
+            List<Image> Animal = Animalz(Row, Column);
             for (int i = 0; i < Row * Column; i++)
             {
+                x.Width = this.Width + 23;
+                x.Height = this.Height + 49;
                 #region properties
-                Card temp = new Card
-                {
-                    Name = "Card" + i,
-                    W = 100,
-                    Height = 150,
-                };
-
-                List<Point> tempLocation = Init_Xy(temp.Width, temp.Height, Row, Column, M).OrderBy(x => rng.Next()).ToList();
+                Card temp = new Card();
                 temp.Location = tempLocation[i];
-                temp.BackColor = Color.Red;
+                temp.Image = (Image)Animal[i];
+                temp.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+                if(i%2 == 0)
+                {
+                    temp.Value = i;
+                }
+                else
+                {
+                    temp.Value = i-1;
+                }
+                
                 #endregion
                 #region Click Event
-                temp.Click += delegate (object sender, EventArgs e)
+                temp.Click += delegate(object sender, EventArgs e)
                 {
-                    Controls.Clear();
+                    #region Compare
+                    Card cardTemp = (Card)sender;
+                    if (!firsttry)
+                    {
+                        compare = cardTemp;
+                        firsttry = true;
+                    }
+                    else if (firsttry && compare != cardTemp)
+                    {
+                        Console.WriteLine($"{compare.Value},{cardTemp.Value}");
+                        compare = null;
+                        firsttry = false;
+                    }
+                    #endregion
+
+                    #region Level
                     if (Controls.Count == 0)
                     {
                         if (Column < 4)
                         {
                             Column++;
+                            Height += 151;
                         }
                         else if (Row < 6)
                         {
                             Row++;
+                            Width += 101;
                         }
                         else
                         {
                             System.Windows.Forms.MessageBox.Show("You Win");
-                            Column = 1;
-                            Row = 4;
+                            x.Close();
+                            this.Row = 4;
+                            this.Column = 1;
+                            this.Width = (100 * Row) + (M * M);
+                            this.Height = (150 * Column) + M * M;
                         }
                         Init_Card(x);
+                        #endregion
                     }
                 };
                 #endregion
@@ -111,11 +152,13 @@ namespace memoryGame
         public CardPanel()
         {
             #region Properties
-            this.Width = 800;
-            this.Height = 600;
+            Card card = new Card();
+            this.M = 3;
             this.Row = 4;
             this.Column = 1;
-            this.M = 3;
+            this.Width = (100 * Row) + (M * M);
+            this.Height = (150 * Column) + 6;
+
             this.Location = new Point(M, M);
             this.BackColor = Color.Black;
             #endregion
@@ -140,8 +183,8 @@ namespace memoryGame
             CardPanel temp = new CardPanel();
             temp.Init_Card(x);
             x.Controls.Add(temp);
-            x.Width = 1024;
-            x.Height = 768;
+            x.Width = temp.Width +23;
+            x.Height = temp.Height + 48;
         }
         #endregion
 

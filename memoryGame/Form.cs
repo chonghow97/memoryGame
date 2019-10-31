@@ -16,9 +16,9 @@ namespace memoryGame
         {
             InitializeComponent();
             CardPanel cardPanel = PanelRemote.GetPanel();
-
             PanelButton panel = new PanelButton(cardPanel);
             panel.Execute(this);
+            Controls.Add(new ScorePanel(this));
         }
     }
 }
